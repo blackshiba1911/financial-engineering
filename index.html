@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>財務工程 | 個人化資金防護與目標配置系統</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts: Noto Sans TC & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            latte: {
+              50: '#FAF8F5',
+              100: '#F4EFEB',
+              200: '#E8DED5',
+              300: '#D7C7B9',
+              400: '#BAA28E',
+              500: '#9E836E',
+              600: '#846B57',
+              700: '#695343',
+              800: '#4D3C30',
+              900: '#32261E'
+            },
+            sand: {
+              DEFAULT: '#EAE3DA',
+              light: '#F8F6F2',
+              dark: '#C8BCAD'
+            },
+            warmslate: '#44403C'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom refined scrollbar & smooth card transitions */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #FAF8F5; }
+    ::-webkit-scrollbar-thumb { background: #D7C7B9; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #BAA28E; }
+
+    .step-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .tab-active {
+      background-color: #9E836E;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(158, 131, 110, 0.25);
+    }
+
+    input[type=range] {
+      accent-color: #9E836E;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background-color: #ffffff !important; }
+      .card-shadow { box-shadow: none !important; border: 1px solid #E8DED5 !important; }
+    }
+  </style>
+</head>
+<body class="bg-latte-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-latte-200 selection:text-latte-900">
+
+  <!-- Header / Navigation -->
+  <header class="bg-white/85 backdrop-blur-md border-b border-latte-200 sticky top-0 z-40 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-latte-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          <span>¥</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-stone-900 tracking-tight leading-tight">財務工程</h1>
+          <p class="text-xs text-stone-600 hidden sm:block">個人化資金防護與目標配置系統</p>
+        </div>
+      </div>
+      
+      <!-- Stepper Indicator in Header -->
+      <div class="flex items-center space-x-1 sm:space-x-2 text-xs font-medium text-stone-600">
+        <span id="badge-step-1" class="px-2.5 py-1 rounded-full bg-latte-500 text-white font-semibold">1. 收支</span>
+        <span class="text-latte-300">/</span>
+        <span id="badge-step-2" class="px-2.5 py-1 rounded-full bg-stone-200 text-stone-700">2. 防護</span>
+        <span class="text-latte-300">/</span>
+        <span id="badge-step-3" class="px-2.5 py-1 rounded-full bg-stone-200 text-stone-700">3. 目標</span>
+        <span class="text-latte-300">/</span>
+        <span id="badge-step-4" class="px-2.5 py-1 rounded-full bg-stone-200 text-stone-700">4. 戰報</span>
+      </div>
+    </div>
+    
+    <!-- Top Progress Bar -->
+    <div class="w-full bg-latte-100 h-1">
+      <div id="wizard-progress-bar" class="bg-latte-500 h-1 transition-all duration-500 ease-out" style="width: 25%;"></div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ========================================== -->
+    <!-- STAGE 1: 收支診斷與幸福數字計算機 -->
+    <!-- ========================================== -->
+    <section id="step-1" class="step-card space-y-6">
+      <!-- Title & Intro -->
+      <div class="text-center sm:text-left space-y-1">
+        <span class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-latte-200 text-latte-800 uppercase tracking-wider">Step 01 / 盤點現金流</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-stone-900">收支診斷與「幸福數字」計算機</h2>
+        <p class="text-sm text-stone-600">別被複雜記帳嚇退。先掌握每個月的真實開銷，並算出留在戶頭能讓你睡得安穩的底牌。</p>
+      </div>
+
+      <!-- Income Input Card -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm transition hover:border-latte-300">
+        <label for="monthly-income" class="block text-sm font-semibold text-stone-800 mb-1">
+          每月固定收入（月薪 / 打工 / 實習補助）
+        </label>
+        <p class="text-xs text-stone-600 mb-3">先以扣除勞健保後的實領入帳金額估算最精準。</p>
+        <div class="relative max-w-xs">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-600 font-semibold">NT$</span>
+          <input type="number" id="monthly-income" value="35000" min="5000" step="1000" 
+                 class="w-full pl-12 pr-4 py-2.5 bg-latte-50 border border-latte-200 rounded-xl focus:ring-2 focus:ring-latte-400 focus:outline-none font-bold text-stone-900 text-lg transition"
+                 oninput="handleIncomeChange()">
+        </div>
+      </div>
+
+      <!-- 8 Expense Cards Grid -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-latte-100 pb-3">
+          <div>
+            <h3 class="font-bold text-stone-900 text-base">8 大日常開銷盤點</h3>
+            <p class="text-xs text-stone-600">填寫每月平均花費；若不確定飲食費，可點擊「平假日概算」自動計算！</p>
+          </div>
+          <button onclick="toggleFoodHelper()" type="button" class="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-latte-100 text-latte-700 hover:bg-latte-200 transition">
+            🍽️ 平假日餐費概算小幫手
+          </button>
+        </div>
+
+        <!-- Food helper expansion modal-like accordion -->
+        <div id="food-helper-box" class="hidden bg-latte-50 p-4 rounded-xl border border-latte-200 text-xs space-y-3">
+          <div class="font-semibold text-latte-900">💡 輕鬆算餐費：填入平均每餐，自動回推整月</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-stone-700 mb-1">工作日 / 平日一天約吃多少？（NT$）</label>
+              <input type="number" id="weekday-meal" value="300" class="w-full p-2 bg-white rounded-lg border border-latte-200">
+            </div>
+            <div>
+              <label class="block text-stone-700 mb-1">週末假日一天約吃多少？（NT$）</label>
+              <input type="number" id="weekend-meal" value="600" class="w-full p-2 bg-white rounded-lg border border-latte-200">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="applyFoodHelper()" class="px-3 py-1.5 bg-latte-500 text-white rounded-lg font-medium hover:bg-latte-600">
+              帶入餐飲支出
+            </button>
+          </div>
+        </div>
+
+        <!-- 8 inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- 1: Food -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>🍜 吃飯飲食</span>
+              <span class="text-latte-400 text-[10px]">早午晚餐、手搖</span>
+            </label>
+            <input type="number" id="exp-food" value="10500" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 2: Housing -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>🏠 居住租金</span>
+              <span class="text-latte-400 text-[10px]">房租、水電瓦斯</span>
+            </label>
+            <input type="number" id="exp-housing" value="7500" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 3: Transport -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>🚇 交通通勤</span>
+              <span class="text-latte-400 text-[10px]">TPASS、油錢車位</span>
+            </label>
+            <input type="number" id="exp-traffic" value="1200" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 4: Living & Subscriptions -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>📱 生活與訂閱</span>
+              <span class="text-latte-400 text-[10px]">電信費、Netflix、日用</span>
+            </label>
+            <input type="number" id="exp-living" value="1500" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 5: Entertainment -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>🎮 休閒玩樂</span>
+              <span class="text-latte-400 text-[10px]">朋友聚餐、旅遊購物</span>
+            </label>
+            <input type="number" id="exp-fun" value="2500" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 6: Loan -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>💳 學貸 / 貸款</span>
+              <span class="text-latte-400 text-[10px]">學貸分期、分期付款</span>
+            </label>
+            <input type="number" id="exp-loan" value="2500" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 7: Family -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>👵 孝親與家人</span>
+              <span class="text-latte-400 text-[10px]">給家裡貼補或紅包</span>
+            </label>
+            <input type="number" id="exp-family" value="2000" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+
+          <!-- 8: Others -->
+          <div class="p-3.5 bg-latte-50/60 rounded-xl border border-latte-100">
+            <label class="text-xs font-medium text-stone-700 flex items-center justify-between">
+              <span>☕ 雜支與其他</span>
+              <span class="text-latte-400 text-[10px]">看診、突發隨喜花費</span>
+            </label>
+            <input type="number" id="exp-other" value="800" class="exp-input mt-1.5 w-full px-3 py-1.5 bg-white border border-latte-200 rounded-lg text-sm font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-latte-400">
+          </div>
+        </div>
+
+        <!-- Expense Total & Ratio Bar -->
+        <div class="bg-latte-100/60 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <span class="text-xs text-stone-600 block">目前每月總開銷估計</span>
+            <span id="current-total-exp" class="text-xl font-bold text-latte-800">NT$ 28,500</span>
+            <span id="exp-ratio-text" class="text-xs ml-2 font-medium px-2 py-0.5 rounded bg-white text-latte-700">佔收入 81%</span>
+          </div>
+
+          <!-- Quick Comparison vs Custom Ratio -->
+          <div class="text-xs text-stone-600 sm:text-right">
+            <span>設定生活開銷目標上限 (<span id="ideal-living-pct-label">60%</span>)：</span>
+            <strong id="ideal-living-budget" class="text-stone-900 block sm:inline font-bold">NT$ 21,000</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customizable Budget Allocation Dashboard (Replaces fixed 6/3/1) -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-latte-100 pb-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-bold text-stone-900 text-base">🎛️ 自訂收支分配比例模型</h3>
+              <span id="ratio-total-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">總和 100%（精準數字輸入 ✕ 智慧校正）</span>
+            </div>
+            <p class="text-xs text-stone-600">支援直接輸入精準整數或微調，系統自動校正其他項目，確保三大資金池總額嚴格維持 100%。</p>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <span class="text-stone-600 font-medium">常見範本：</span>
+            <button type="button" onclick="applyPreset(60, 30, 10)" class="preset-btn px-2.5 py-1 rounded-lg border border-latte-300 bg-latte-50 hover:bg-latte-200 text-stone-800 font-medium transition">經典 6/3/1</button>
+            <button type="button" onclick="applyPreset(70, 20, 10)" class="preset-btn px-2.5 py-1 rounded-lg border border-latte-300 bg-latte-50 hover:bg-latte-200 text-stone-800 font-medium transition">外宿租屋 7/2/1</button>
+            <button type="button" onclick="applyPreset(50, 40, 10)" class="preset-btn px-2.5 py-1 rounded-lg border border-latte-300 bg-latte-50 hover:bg-latte-200 text-stone-800 font-medium transition">住家衝刺 5/4/1</button>
+          </div>
+        </div>
+
+        <!-- 3 Interactive Allocation Cards with Direct Numeric Input & Sliders -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <!-- Item 1: Living -->
+          <div class="p-4 rounded-xl border border-latte-200 bg-latte-50/50 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-latte-800 text-xs">生活開銷池</span>
+              <div class="flex items-center space-x-1">
+                <input type="number" id="input-ratio-living" min="15" max="85" step="1" value="60"
+                       class="w-16 px-2 py-1 text-right text-sm font-extrabold text-stone-900 bg-white border border-latte-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-latte-400"
+                       oninput="handleRatioInputChange('living')" onblur="finalizeRatioInput('living')">
+                <span class="text-xs font-bold text-stone-700">%</span>
+              </div>
+            </div>
+            <input type="range" id="slider-ratio-living" min="15" max="85" step="1" value="60" 
+                   class="w-full h-2 bg-latte-200 rounded-lg cursor-pointer" oninput="handleRatioSliderChange('living')">
+            <div class="pt-1 flex justify-between items-baseline">
+              <span class="text-[11px] text-stone-600">目標上限：</span>
+              <span id="ratio-60-amount" class="text-base font-bold text-stone-900">NT$ 21,000</span>
+            </div>
+            <div id="ratio-60-status" class="text-[11px] text-amber-700">目前實際：81% (超支)</div>
+          </div>
+
+          <!-- Item 2: Investment -->
+          <div class="p-4 rounded-xl border border-latte-200 bg-emerald-50/40 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-emerald-800 text-xs">累積投資池</span>
+              <div class="flex items-center space-x-1">
+                <input type="number" id="input-ratio-invest" min="5" max="75" step="1" value="30"
+                       class="w-16 px-2 py-1 text-right text-sm font-extrabold text-emerald-900 bg-white border border-emerald-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                       oninput="handleRatioInputChange('invest')" onblur="finalizeRatioInput('invest')">
+                <span class="text-xs font-bold text-emerald-800">%</span>
+              </div>
+            </div>
+            <input type="range" id="slider-ratio-invest" min="5" max="75" step="1" value="30" 
+                   class="w-full h-2 bg-emerald-200 rounded-lg cursor-pointer accent-emerald-700" oninput="handleRatioSliderChange('invest')">
+            <div class="pt-1 flex justify-between items-baseline">
+              <span class="text-[11px] text-stone-600">每月提存目標：</span>
+              <span id="ratio-30-amount" class="text-base font-bold text-emerald-900">NT$ 10,500</span>
+            </div>
+            <div class="text-[11px] text-stone-600">複利主力動能</div>
+          </div>
+
+          <!-- Item 3: Protection -->
+          <div class="p-4 rounded-xl border border-latte-200 bg-sky-50/40 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sky-800 text-xs">風險防護池</span>
+              <div class="flex items-center space-x-1">
+                <input type="number" id="input-ratio-shield" min="3" max="30" step="1" value="10"
+                       class="w-16 px-2 py-1 text-right text-sm font-extrabold text-sky-900 bg-white border border-sky-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-sky-500"
+                       oninput="handleRatioInputChange('shield')" onblur="finalizeRatioInput('shield')">
+                <span class="text-xs font-bold text-sky-800">%</span>
+              </div>
+            </div>
+            <input type="range" id="slider-ratio-shield" min="3" max="30" step="1" value="10" 
+                   class="w-full h-2 bg-sky-200 rounded-lg cursor-pointer accent-sky-700" oninput="handleRatioSliderChange('shield')">
+            <div class="pt-1 flex justify-between items-baseline">
+              <span class="text-[11px] text-stone-600">每月防護預算：</span>
+              <span id="ratio-10-amount" class="text-base font-bold text-sky-900">NT$ 3,500</span>
+            </div>
+            <div class="text-[11px] text-stone-600">防止本金被醫療意外侵蝕</div>
+          </div>
+        </div>
+
+        <!-- Real-time balanced visual bar -->
+        <div class="p-3 bg-latte-50 rounded-xl border border-latte-200 space-y-1.5">
+          <div class="flex justify-between items-center text-[11px] text-stone-600 font-medium">
+            <span>比例視覺分佈條（自動保持 100%）：</span>
+            <span>生活 <strong id="bar-liv-pct" class="text-stone-800">60%</strong> ｜ 投資 <strong id="bar-inv-pct" class="text-emerald-800">30%</strong> ｜ 防護 <strong id="bar-shi-pct" class="text-sky-800">10%</strong></span>
+          </div>
+          <div class="w-full h-3 bg-stone-200 rounded-full overflow-hidden flex shadow-inner">
+            <div id="bar-seg-living" class="bg-latte-500 transition-all duration-150 h-full" style="width: 60%;"></div>
+            <div id="bar-seg-invest" class="bg-emerald-600 transition-all duration-150 h-full" style="width: 30%;"></div>
+            <div id="bar-seg-shield" class="bg-sky-500 transition-all duration-150 h-full" style="width: 10%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Happy Number & Safety Base -->
+      <div class="bg-gradient-to-br from-latte-100/80 to-sand-light rounded-2xl p-5 sm:p-6 border border-latte-300 shadow-sm space-y-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🛋️</span>
+          <div>
+            <h3 class="font-bold text-stone-900 text-base">你的「幸福數字」與可支配本金</h3>
+            <p class="text-xs text-stone-600">理財不是壓榨每一塊錢，而是知道底線在哪，剩下的錢才能安心複利。</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-white/80 backdrop-blur p-4 rounded-xl border border-latte-200">
+            <label class="block text-xs font-medium text-stone-700 mb-1">
+              個人安全感「幸福數字」（戶頭底牌）
+            </label>
+            <p class="text-[11px] text-stone-600 mb-2">不管發生什麼事，戶頭維持多少錢會讓你睡得好？</p>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-stone-600 font-bold">NT$</span>
+              <input type="number" id="happy-number" value="30000" step="5000" class="w-full pl-10 pr-3 py-1.5 bg-latte-50 border border-latte-200 rounded-lg text-sm font-bold text-stone-900" oninput="calculateStage1()">
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur p-4 rounded-xl border border-latte-200">
+            <label class="block text-xs font-medium text-stone-700 mb-1">
+              建議 6 個月緊急預備金底線
+            </label>
+            <p class="text-[11px] text-stone-600 mb-2">以每月生活支出（NT$ <span id="happy-exp-base">28,500</span>）× 6 個月</p>
+            <div id="emergency-fund-amount" class="text-xl font-bold text-latte-800 mt-1">NT$ 171,000</div>
+          </div>
+        </div>
+
+        <!-- Bottom Takeaway -->
+        <div class="bg-white p-4 rounded-xl border border-latte-200 flex items-start space-x-3">
+          <span class="text-base">✨</span>
+          <div class="text-xs text-stone-700 leading-relaxed">
+            <strong>醒腦結論：</strong> 每月薪資扣除開銷後，您目前每月約有 <span id="monthly-surplus" class="font-bold text-emerald-800">NT$ 6,500</span> 可用餘額。在建立好 6 個月預備金底牌後，這筆錢即可 100% 無後顧之憂投入階段三的保底投資工程！
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Next -->
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="goToStep(2)" class="px-6 py-3 rounded-xl bg-latte-500 hover:bg-latte-600 text-white font-semibold text-sm shadow-md transition flex items-center space-x-2">
+          <span>下一步：檢測風險防護罩</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 2: 視覺化風險防護罩與日薪對照 -->
+    <!-- ========================================== -->
+    <section id="step-2" class="step-card space-y-6 hidden">
+      <!-- Title & Intro -->
+      <div class="text-center sm:text-left space-y-1">
+        <span class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-latte-200 text-latte-800 uppercase tracking-wider">Step 02 / 築起防火牆</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-stone-900">視覺化風險防護罩 ✕ 日薪對照</h2>
+        <p class="text-sm text-stone-600">年輕是最好的本錢，但一場無妄的意外或手術，可能瞬間吃掉整年累積的辛苦錢。</p>
+      </div>
+
+      <!-- Wage to Reality Card -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Daily wage -->
+        <div class="bg-white rounded-2xl p-5 border border-latte-200 shadow-sm text-center">
+          <span class="text-xs text-stone-600 block">你的工作日薪估算 (月薪 ÷ 30)</span>
+          <div id="card-daily-wage" class="text-2xl font-bold text-stone-900 mt-1">NT$ 1,167 / 天</div>
+          <p class="text-[11px] text-stone-600 mt-1">請假一天，薪水就少一天</p>
+        </div>
+
+        <!-- 7 days sick leave cost -->
+        <div class="bg-white rounded-2xl p-5 border border-latte-200 shadow-sm text-center">
+          <span class="text-xs text-stone-600 block">意外住院 7 天 停工損失</span>
+          <div id="card-pause-loss" class="text-2xl font-bold text-amber-700 mt-1">NT$ 8,169</div>
+          <p class="text-[11px] text-stone-600 mt-1">相當於耗損近 1/4 個月所得</p>
+        </div>
+
+        <!-- Self-pay medical cost typical -->
+        <div class="bg-white rounded-2xl p-5 border border-latte-200 shadow-sm text-center">
+          <span class="text-xs text-stone-600 block">常見微創/自費材料支出 (如骨折鋼板)</span>
+          <div class="text-2xl font-bold text-rose-700 mt-1">NT$ 70,000 ~ 12萬</div>
+          <p class="text-[11px] text-stone-600 mt-1">若無實支實付，相當於存半年打水漂</p>
+        </div>
+      </div>
+
+      <!-- Shield Checklist & Radar -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm">
+        
+        <!-- Checklist (Left 7 Cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="border-b border-latte-100 pb-3">
+            <h3 class="font-bold text-stone-900 text-base">新鮮人必備 4 大底層核心防護檢視</h3>
+            <p class="text-xs text-stone-600">勾選你目前已擁有的保障（畢業學保失效後，請檢視個人投保情況）：</p>
+          </div>
+
+          <div class="space-y-3">
+            <!-- 1. Accident -->
+            <label class="flex items-start p-3 bg-latte-50/50 hover:bg-latte-100/50 rounded-xl border border-latte-200 cursor-pointer transition">
+              <input type="checkbox" id="shield-accident" class="mt-1 h-4 w-4 text-latte-600 rounded border-latte-300 focus:ring-latte-400" checked onchange="updateShieldScore()">
+              <div class="ml-3">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-stone-900">1. 意外傷害險 (含失能等級)</span>
+                  <span class="text-[10px] bg-latte-200 text-latte-800 px-1.5 py-0.5 rounded font-semibold">年輕首選</span>
+                </div>
+                <p class="text-xs text-stone-600 mt-0.5">防範騎機車通勤、運動重傷的槓桿支柱，一年僅需數百至一千多元。</p>
+              </div>
+            </label>
+
+            <!-- 2. Accident Reimbursement -->
+            <label class="flex items-start p-3 bg-latte-50/50 hover:bg-latte-100/50 rounded-xl border border-latte-200 cursor-pointer transition">
+              <input type="checkbox" id="shield-accident-pay" class="mt-1 h-4 w-4 text-latte-600 rounded border-latte-300 focus:ring-latte-400" checked onchange="updateShieldScore()">
+              <div class="ml-3">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-stone-900">2. 意外實支實付 (門診/骨折)</span>
+                  <span class="text-[10px] bg-latte-200 text-latte-800 px-1.5 py-0.5 rounded font-semibold">高頻使用</span>
+                </div>
+                <p class="text-xs text-stone-600 mt-0.5">摔車擦傷、門診換藥、急診自費，花多少憑收據理賠多少，最有感。</p>
+              </div>
+            </label>
+
+            <!-- 3. Hospital Medical Reimbursement -->
+            <label class="flex items-start p-3 bg-latte-50/50 hover:bg-latte-100/50 rounded-xl border border-latte-200 cursor-pointer transition">
+              <input type="checkbox" id="shield-hospital-pay" class="mt-1 h-4 w-4 text-latte-600 rounded border-latte-300 focus:ring-latte-400" onchange="updateShieldScore()">
+              <div class="ml-3">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-stone-900">3. 住院醫療實支實付</span>
+                  <span class="text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-semibold">核心防火牆</span>
+                </div>
+                <p class="text-xs text-stone-600 mt-0.5">健保不給付的病房差額、昂貴自費藥物與耗材，全靠它擋下財務核爆。</p>
+              </div>
+            </label>
+
+            <!-- 4. Surgery / Critical -->
+            <label class="flex items-start p-3 bg-latte-50/50 hover:bg-latte-100/50 rounded-xl border border-latte-200 cursor-pointer transition">
+              <input type="checkbox" id="shield-surgery" class="mt-1 h-4 w-4 text-latte-600 rounded border-latte-300 focus:ring-latte-400" onchange="updateShieldScore()">
+              <div class="ml-3">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-stone-900">4. 手術與重大傷病額度</span>
+                  <span class="text-[10px] bg-latte-200 text-latte-800 px-1.5 py-0.5 rounded font-semibold">定期低保費高保障</span>
+                </div>
+                <p class="text-xs text-stone-600 mt-0.5">涵蓋門診手術或特定重大病症定額給付，補貼停工休養期生活費。</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Visual Shield Rating (Right 5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col items-center justify-center p-4 bg-latte-50/70 rounded-xl border border-latte-200 text-center">
+          <span class="text-xs text-stone-600 font-semibold mb-1">目前防護罩強度評分</span>
+          
+          <!-- Circle Gauge -->
+          <div class="relative w-36 h-36 my-2 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path class="text-latte-200" stroke-width="3.5" stroke="currentColor" fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="shield-circle-svg" class="text-latte-500 transition-all duration-700 ease-out" stroke-dasharray="50, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center">
+              <span id="shield-score-text" class="text-3xl font-extrabold text-latte-900">50</span>
+              <span class="text-[10px] text-stone-600 uppercase font-bold tracking-wider">分 / 100</span>
+            </div>
+          </div>
+
+          <div id="shield-diagnostic-desc" class="text-xs text-stone-700 mt-2 px-3 leading-relaxed">
+            防護罩處於基礎階段，尚欠缺「住院實支實付」與「手術險」，遇較大醫療事件需自掏腰包。
+          </div>
+
+          <!-- Suggested Budget Box -->
+          <div class="mt-4 pt-3 border-t border-latte-200 w-full text-left">
+            <div class="text-[11px] text-stone-600 flex justify-between">
+              <span>依自訂防護比例 (<span id="shield-budget-pct-label">10%</span>) 年化預算：</span>
+              <strong id="shield-annual-budget" class="text-stone-900">NT$ 42,000 / 年</strong>
+            </div>
+            <div class="text-[11px] text-latte-700 flex justify-between mt-1">
+              <span>相當於每月提存額度：</span>
+              <strong id="shield-monthly-budget" class="font-bold">NT$ 3,500 / 月</strong>
+            </div>
+            <p class="text-[10px] text-stone-600 mt-1">※ 年輕時費率最便宜，趁無體況時鎖定定期保障，CP值最高！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between pt-2">
+        <button type="button" onclick="goToStep(1)" class="px-5 py-2.5 rounded-xl border border-latte-300 text-stone-700 hover:bg-latte-100 font-medium text-sm transition">
+          ← 上一步：收支盤點
+        </button>
+        <button type="button" onclick="goToStep(3)" class="px-6 py-3 rounded-xl bg-latte-500 hover:bg-latte-600 text-white font-semibold text-sm shadow-md transition flex items-center space-x-2">
+          <span>下一步：設定目標與保底下限</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 3: 目標階梯與保底模擬器 -->
+    <!-- ========================================== -->
+    <section id="step-3" class="step-card space-y-6 hidden">
+      <!-- Title & Intro -->
+      <div class="text-center sm:text-left space-y-1">
+        <span class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-latte-200 text-latte-800 uppercase tracking-wider">Step 03 / 保底下限模擬</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-stone-900">目標階梯與「下限思維 (Floor)」模擬器</h2>
+        <p class="text-sm text-stone-600">別被網路暴富神話綁架。以 5%~6% 穩健複利為下限，見證每月紀律累積如何替你負擔未來開銷。</p>
+      </div>
+
+      <!-- Wake-up Call Note -->
+      <div class="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex items-start space-x-3">
+        <span class="text-xl">💡</span>
+        <div class="text-xs text-amber-900 leading-relaxed">
+          <strong>新鮮人累積第一桶金醒腦提示：</strong>
+          在資產達到 100 萬前，<strong>「本金累積速度（儲蓄率）」的影響力遠高於追求極端報酬率</strong>。本金 3 萬就算冒險搏得 50% 報酬也僅多 1.5 萬；但若每月穩健存下 1 萬，一年就能扎實累積 12 萬本金。先做大本金，複利才真正具有爆發力！
+        </div>
+      </div>
+
+      <!-- Goals Selection -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-stone-900 text-base">挑選目前最重要的核心里程碑</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          
+          <button type="button" onclick="selectGoal('short')" id="goal-btn-short" class="p-4 rounded-xl border-2 border-latte-500 bg-latte-50/80 text-left transition relative">
+            <span class="text-xs font-semibold text-latte-700 block">短期目標 (1~3年)</span>
+            <div class="text-stone-900 font-bold mt-1">累積首桶 20~50 萬</div>
+            <p class="text-[11px] text-stone-600 mt-1">首台代步車、進修裝備、滿額預備金</p>
+          </button>
+
+          <button type="button" onclick="selectGoal('mid')" id="goal-btn-mid" class="p-4 rounded-xl border border-latte-200 bg-white text-left transition hover:border-latte-400">
+            <span class="text-xs font-semibold text-latte-700 block">中長期目標 (5~10年)</span>
+            <div class="text-stone-900 font-bold mt-1">成家 / 首購頭期 150 萬</div>
+            <p class="text-[11px] text-stone-600 mt-1">結婚基金、海外留學、首購自備款</p>
+          </button>
+
+          <button type="button" onclick="selectGoal('retire')" id="goal-btn-retire" class="p-4 rounded-xl border border-latte-200 bg-white text-left transition hover:border-latte-400">
+            <span class="text-xs font-semibold text-latte-700 block">遠期目標 (45~60歲)</span>
+            <div class="text-stone-900 font-bold mt-1">自由退休月領 4 萬元</div>
+            <p class="text-[11px] text-stone-600 mt-1">勞保勞退雙支柱 + 個人提存被動金流</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Compounding Interactive Simulator -->
+      <div class="bg-white rounded-2xl p-5 sm:p-6 border border-latte-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-latte-100 pb-3">
+          <div>
+            <h3 class="font-bold text-stone-900 text-base">保底下限 (Floor) 複利試算引擎</h3>
+            <p class="text-xs text-stone-600">以穩健市值型 ETF 或全市場配置（保守預期 5%~6% 年化）計算保底資產累積：</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-medium text-stone-700">保守年化利率：</span>
+            <select id="sim-return-rate" class="text-xs font-bold bg-latte-100 text-latte-800 rounded-lg p-1.5 border border-latte-300" onchange="runSimulation()">
+              <option value="0.05">5.0% (穩健保守)</option>
+              <option value="0.06" selected>6.0% (長期平均)</option>
+              <option value="0.07">7.0% (樂觀市值)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sliders -->
+        <div class="space-y-5">
+          <!-- Monthly Contribution Slider -->
+          <div>
+            <div class="flex justify-between items-center text-sm mb-1.5">
+              <span class="font-semibold text-stone-800">每月固定提存投資金額</span>
+              <span id="slider-contrib-val" class="font-bold text-latte-800 text-base">NT$ 10,000 / 月</span>
+            </div>
+            <input type="range" id="sim-monthly-contrib" min="2000" max="35000" step="1000" value="10000" 
+                   class="w-full h-2 bg-latte-100 rounded-lg cursor-pointer" oninput="runSimulation()">
+            <div class="flex justify-between text-[10px] text-stone-600 mt-1">
+              <span>NT$ 2,000</span>
+              <span>NT$ 15,000</span>
+              <span>NT$ 35,000</span>
+            </div>
+          </div>
+
+          <!-- Years Slider -->
+          <div>
+            <div class="flex justify-between items-center text-sm mb-1.5">
+              <span class="font-semibold text-stone-800">持續累積年限</span>
+              <span id="slider-years-val" class="font-bold text-latte-800 text-base">10 年</span>
+            </div>
+            <input type="range" id="sim-years" min="1" max="30" step="1" value="10" 
+                   class="w-full h-2 bg-latte-100 rounded-lg cursor-pointer" oninput="runSimulation()">
+            <div class="flex justify-between text-[10px] text-stone-600 mt-1">
+              <span>1 年</span>
+              <span>10 年</span>
+              <span>20 年</span>
+              <span>30 年</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulation Results Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div class="bg-latte-50/70 p-4 rounded-xl border border-latte-200">
+            <span class="text-xs text-stone-600 block">本金自付總投入</span>
+            <div id="sim-total-principal" class="text-lg font-bold text-stone-900 mt-1">NT$ 1,200,000</div>
+            <span class="text-[10px] text-stone-600">你的滴水穿石努力</span>
+          </div>
+
+          <div class="bg-latte-50/70 p-4 rounded-xl border border-latte-200">
+            <span class="text-xs text-stone-600 block">複利孳生利息 (Floor)</span>
+            <div id="sim-total-interest" class="text-lg font-bold text-latte-700 mt-1">NT$ 438,652</div>
+            <span class="text-[10px] text-latte-700 font-medium">時間送你的複利禮物</span>
+          </div>
+
+          <div class="bg-latte-500 text-white p-4 rounded-xl shadow-sm">
+            <span class="text-xs text-latte-100 block">預期保底資產總值</span>
+            <div id="sim-total-future" class="text-xl font-extrabold mt-1">NT$ 1,638,652</div>
+            <span class="text-[10px] text-latte-200">達成率超過中長期目標！</span>
+          </div>
+        </div>
+
+        <!-- Passive Cashflow & Expense Coverage -->
+        <div class="bg-sand-light/60 p-4 sm:p-5 rounded-xl border border-latte-300 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-stone-900 uppercase">被動收入生活抵繳率 (以 4% 法則估算每月現金流)</span>
+              <p class="text-xs text-stone-600">這筆累積資產每月能為你產生約 <strong id="sim-monthly-passive" class="text-stone-900 font-bold">NT$ 5,462</strong> 被動現金流</p>
+            </div>
+            <span id="coverage-percentage-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              抵繳 19%
+            </span>
+          </div>
+
+          <!-- Visual Progress of Expense items unlocked -->
+          <div class="space-y-2 pt-1 text-xs">
+            <div class="flex items-center justify-between">
+              <span id="badge-phone-check" class="flex items-center space-x-1.5 text-stone-700">
+                <span>📱 手機費與生活訂閱 (約 NT$1,500)</span>
+              </span>
+              <span id="status-phone" class="font-semibold text-emerald-700">✅ 已完整覆蓋</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span id="badge-traffic-check" class="flex items-center space-x-1.5 text-stone-700">
+                <span>🚇 交通通勤費 (約 NT$1,200)</span>
+              </span>
+              <span id="status-traffic" class="font-semibold text-emerald-700">✅ 已完整覆蓋</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span id="badge-rent-check" class="flex items-center space-x-1.5 text-stone-700">
+                <span>🏠 每月房租補助 (約 NT$7,500)</span>
+              </span>
+              <span id="status-rent" class="font-semibold text-stone-600">⏳ 還差 NT$ 2,038 覆蓋</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between pt-2">
+        <button type="button" onclick="goToStep(2)" class="px-5 py-2.5 rounded-xl border border-latte-300 text-stone-700 hover:bg-latte-100 font-medium text-sm transition">
+          ← 上一步：防護檢驗
+        </button>
+        <button type="button" onclick="goToStep(4)" class="px-6 py-3 rounded-xl bg-latte-500 hover:bg-latte-600 text-white font-semibold text-sm shadow-md transition flex items-center space-x-2">
+          <span>完成診斷：生成財務工程戰報</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- STAGE 4: 個人化財務工程戰報 -->
+    <!-- ========================================== -->
+    <section id="step-4" class="step-card space-y-6 hidden">
+      <!-- Top banner & actions -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <span class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider">診斷完成 / Report</span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-stone-900 mt-1">你的專屬財務工程戰報</h2>
+          <p class="text-xs text-stone-600">量化現狀、建立防護底牌、錨定下限目標的完整行動指南。</p>
+        </div>
+        <div class="flex items-center space-x-2 no-print">
+          <button onclick="copySummaryText()" type="button" class="px-3.5 py-2 rounded-xl bg-latte-100 hover:bg-latte-200 text-latte-800 font-semibold text-xs transition flex items-center space-x-1.5">
+            <span>📋</span>
+            <span>複製戰報摘要</span>
+          </button>
+          <button onclick="window.print()" type="button" class="px-4 py-2 rounded-xl bg-latte-500 hover:bg-latte-600 text-white font-semibold text-xs shadow-sm transition flex items-center space-x-1.5">
+            <span>🖨️</span>
+            <span>列印 / 存為 PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Copied notification toast -->
+      <div id="copy-toast" class="hidden p-3 bg-stone-900 text-white text-xs rounded-xl text-center shadow-lg transition">
+        ✅ 戰報摘要已成功複製至剪貼簿！可直接分享給朋友或貼到筆記。
+      </div>
+
+      <!-- Printable Report Body -->
+      <div id="report-container" class="bg-white rounded-3xl p-6 sm:p-8 border border-latte-200 shadow-md space-y-6">
+        
+        <!-- Report Header -->
+        <div class="flex flex-col sm:flex-row justify-between border-b border-latte-200 pb-5 gap-3">
+          <div>
+            <div class="text-xs uppercase tracking-widest text-latte-500 font-bold">Financial Engineering Blueprint</div>
+            <h3 class="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">財務工程評估書</h3>
+            <span class="text-xs text-stone-600">診斷日期：<span id="report-date"></span> ｜ 評估對象：青年個人化財務健檢</span>
+          </div>
+          <div class="bg-latte-50 border border-latte-200 rounded-2xl p-3 text-right flex flex-col justify-center">
+            <span class="text-[11px] text-stone-600">實領月收基準</span>
+            <span id="report-income-tag" class="text-lg font-black text-latte-800">NT$ 35,000</span>
+          </div>
+        </div>
+
+        <!-- 3 Pillars Summary Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Card 1: Cashflow -->
+          <div class="p-4 rounded-2xl bg-latte-50/80 border border-latte-200">
+            <div class="flex items-center space-x-1.5 text-xs font-bold text-latte-700 mb-2">
+              <span>💳</span>
+              <span>收支與安全底牌</span>
+            </div>
+            <div class="space-y-1.5 text-xs text-stone-700">
+              <div class="flex justify-between">
+                <span>月支出額：</span>
+                <strong id="rep-exp-val" class="text-stone-900">NT$ 28,500</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>支出佔比：</span>
+                <strong id="rep-ratio-val" class="text-amber-800 font-bold">81%</strong>
+              </div>
+              <div class="flex justify-between border-t border-latte-200 pt-1">
+                <span>幸福底牌數字：</span>
+                <strong id="rep-happy-val" class="text-stone-900">NT$ 30,000</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>6個月預備金：</span>
+                <strong id="rep-emer-val" class="text-latte-800 font-bold">NT$ 171,000</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Risk Shield -->
+          <div class="p-4 rounded-2xl bg-latte-50/80 border border-latte-200">
+            <div class="flex items-center space-x-1.5 text-xs font-bold text-latte-700 mb-2">
+              <span>🛡️</span>
+              <span>風險防護罩強度</span>
+            </div>
+            <div class="space-y-1.5 text-xs text-stone-700">
+              <div class="flex justify-between">
+                <span>防護罩總分：</span>
+                <strong id="rep-shield-score" class="text-latte-800 font-extrabold text-sm">50 分 / 100</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>換算每日日薪：</span>
+                <strong id="rep-daily-wage" class="text-stone-900">NT$ 1,167</strong>
+              </div>
+              <div class="flex justify-between border-t border-latte-200 pt-1">
+                <span>建議年化保費：</span>
+                <strong id="rep-shield-budget" class="text-stone-900">NT$ 42,000</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>優先補強核心：</span>
+                <strong id="rep-shield-focus" class="text-rose-700">實支實付醫療</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Target Ladder -->
+          <div class="p-4 rounded-2xl bg-latte-50/80 border border-latte-200">
+            <div class="flex items-center space-x-1.5 text-xs font-bold text-latte-700 mb-2">
+              <span>🎯</span>
+              <span>目標階梯與保底</span>
+            </div>
+            <div class="space-y-1.5 text-xs text-stone-700">
+              <div class="flex justify-between">
+                <span>目前核心目標：</span>
+                <strong id="rep-goal-name" class="text-stone-900">短期首桶金</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>每月固定投入：</span>
+                <strong id="rep-sim-monthly" class="text-stone-900">NT$ 10,000</strong>
+              </div>
+              <div class="flex justify-between border-t border-latte-200 pt-1">
+                <span>10年預期累積：</span>
+                <strong id="rep-sim-future" class="text-emerald-800 font-bold">NT$ 1,638,652</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>被動支出覆蓋率：</span>
+                <strong id="rep-sim-cov" class="text-emerald-800 font-bold">19%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6/3/1 Optimization Comparison Table -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-stone-900 text-sm flex items-center space-x-1.5">
+            <span>⚖️</span>
+            <span>財務工程優化前後對照表（個人自訂模型）</span>
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-latte-100 text-stone-700 border-b border-latte-200">
+                  <th class="p-2.5 rounded-l-lg font-bold">配置區塊</th>
+                  <th class="p-2.5 font-bold">當前現狀估算</th>
+                  <th class="p-2.5 font-bold">自訂目標配置標準</th>
+                  <th class="p-2.5 rounded-r-lg font-bold">專屬優化建議行動</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-latte-100 text-stone-700">
+                <tr>
+                  <td id="table-head-living" class="p-2.5 font-semibold text-stone-900">生活開銷 (60%)</td>
+                  <td id="table-curr-living" class="p-2.5 text-amber-800 font-bold">NT$ 28,500 (81%)</td>
+                  <td id="table-ideal-living" class="p-2.5">NT$ 21,000 (60%)</td>
+                  <td class="p-2.5 text-stone-600">檢視房租與娛樂訂閱，盡量逐步向目標比例靠攏。</td>
+                </tr>
+                <tr>
+                  <td id="table-head-invest" class="p-2.5 font-semibold text-stone-900">理財累積 (30%)</td>
+                  <td id="table-curr-invest" class="p-2.5 text-stone-600">NT$ 6,500 (19%)</td>
+                  <td id="table-ideal-invest" class="p-2.5">NT$ 10,500 (30%)</td>
+                  <td class="p-2.5 text-stone-600">開立獨立證券帳戶，薪轉日自動定期定額扣款。</td>
+                </tr>
+                <tr>
+                  <td id="table-head-shield" class="p-2.5 font-semibold text-stone-900">風險防護 (10%)</td>
+                  <td id="table-curr-shield" class="p-2.5 text-stone-600">視現況保單</td>
+                  <td id="table-ideal-shield" class="p-2.5">NT$ 3,500 (10%)</td>
+                  <td class="p-2.5 text-stone-600">趁年輕無體況，先補足實支實付醫療與定期意外險。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Custom Action Steps (Freshman specific) -->
+        <div class="bg-latte-50 p-4 sm:p-5 rounded-2xl border border-latte-200 space-y-3">
+          <h4 class="font-bold text-stone-900 text-sm">🌱 新鮮人下一步：3 個無痛起步動作</h4>
+          <ol class="list-decimal list-inside text-xs text-stone-700 space-y-2 leading-relaxed">
+            <li><strong>設定「底牌子帳戶」</strong>：開立高活存數位帳戶，先存滿 <span id="rec-happy-txt" class="font-bold text-latte-800">NT$ 30,000</span> 當作幸福數字底牌，未達目標前不隨意大筆開銷。</li>
+            <li><strong>防護罩先求有、求高CP值</strong>：優先確認是否有「意外實支」與「住院醫療實支實付」，一年預算控制在薪水 10% 內即可，不買昂貴還本險。</li>
+            <li><strong>設定薪資日「自動扣款」</strong>：在每個月發薪隔天，自動扣款 <span id="rec-invest-txt" class="font-bold text-emerald-800">NT$ 6,000 ~ 10,000</span> 投入大盤市值型 ETF，不看盤、讓時間複利自動運轉。</li>
+          </ol>
+        </div>
+
+        <!-- Watermark / Footer Sign -->
+        <div class="text-center pt-2 border-t border-latte-100 text-[11px] text-stone-600">
+          本系統依據 6/3/1 現金流法則、4% 退休金流原理與保守年化 5%~6% 模型製作。理財有賺有賠，及早建立防護與下限思維才是長治久安之道。
+        </div>
+      </div>
+
+      <!-- Back to edit button -->
+      <div class="flex justify-between pt-2 no-print">
+        <button type="button" onclick="goToStep(3)" class="px-5 py-2.5 rounded-xl border border-latte-300 text-stone-700 hover:bg-latte-100 font-medium text-sm transition">
+          ← 返回修改數值
+        </button>
+        <button type="button" onclick="goToStep(1)" class="px-5 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium text-sm transition">
+          🔄 重新完整體檢
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-latte-200 py-6 mt-12 no-print text-center text-xs text-stone-600">
+    <div class="max-w-4xl mx-auto px-4">
+      <p class="font-medium text-stone-700">財務工程 ✕ 個人化資金防護與目標配置系統</p>
+      <p class="text-[11px] text-stone-600 mt-1">Japanese Milk Tea & Sand Design ✕ No Financial Anxiety</p>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <!-- ========================================== -->
+  <script>
+    // State storage
+    const state = {
+      income: 35000,
+      ratios: {
+        living: 60,
+        invest: 30,
+        shield: 10
+      },
+      expenses: {
+        food: 10500,
+        housing: 7500,
+        traffic: 1200,
+        living: 1500,
+        fun: 2500,
+        loan: 2500,
+        family: 2000,
+        other: 800
+      },
+      happyNumber: 30000,
+      currentStep: 1,
+      selectedGoal: 'short',
+      shieldChecks: {
+        accident: true,
+        accidentPay: true,
+        hospitalPay: false,
+        surgery: false
+      },
+      sim: {
+        monthlyContrib: 10000,
+        years: 10,
+        rate: 0.06
+      }
+    };
+
+    // Format utility
+    function fmt(num) {
+      return Math.round(num).toLocaleString('en-US');
+    }
+
+    // Direct Numeric Input Handler
+    function handleRatioInputChange(changedSource) {
+      const minL = 15, maxL = 85;
+      const minI = 5,  maxI = 75;
+      const minS = 3,  maxS = 30;
+
+      let l = parseInt(document.getElementById('input-ratio-living').value);
+      let i = parseInt(document.getElementById('input-ratio-invest').value);
+      let s = parseInt(document.getElementById('input-ratio-shield').value);
+
+      // Allow empty while typing
+      if (isNaN(l) && changedSource !== 'living') l = state.ratios.living;
+      if (isNaN(i) && changedSource !== 'invest') i = state.ratios.invest;
+      if (isNaN(s) && changedSource !== 'shield') s = state.ratios.shield;
+
+      if (changedSource === 'living') {
+        if (isNaN(l)) return;
+        l = Math.max(minL, Math.min(maxL, l));
+        let remaining = 100 - l;
+        let prevSum = state.ratios.invest + state.ratios.shield;
+        let newS = prevSum > 0 ? Math.round(remaining * (state.ratios.shield / prevSum)) : minS;
+        newS = Math.max(minS, Math.min(maxS, newS));
+        let newI = remaining - newS;
+
+        if (newI < minI) { newI = minI; newS = remaining - newI; }
+        else if (newI > maxI) { newI = maxI; newS = remaining - newI; }
+        i = newI;
+        s = newS;
+      } else if (changedSource === 'invest') {
+        if (isNaN(i)) return;
+        i = Math.max(minI, Math.min(maxI, i));
+        let remaining = 100 - i;
+        let newL = remaining - state.ratios.shield;
+        let newS = state.ratios.shield;
+        if (newL < minL) {
+          newL = minL;
+          newS = remaining - newL;
+          if (newS < minS) newS = minS;
+          if (newS > maxS) newS = maxS;
+        } else if (newL > maxL) {
+          newL = maxL;
+          newS = remaining - newL;
+        }
+        l = newL;
+        s = newS;
+      } else if (changedSource === 'shield') {
+        if (isNaN(s)) return;
+        s = Math.max(minS, Math.min(maxS, s));
+        let remaining = 100 - s;
+        let newI = remaining - state.ratios.living;
+        let newL = state.ratios.living;
+        if (newI < minI) {
+          newI = minI;
+          newL = remaining - newI;
+        } else if (newI > maxI) {
+          newI = maxI;
+          newL = remaining - newI;
+        }
+        i = newI;
+        l = newL;
+      }
+
+      // Guarantee strict 100% total
+      let diff = 100 - (l + i + s);
+      if (diff !== 0) {
+        if (changedSource !== 'invest' && (i + diff) >= minI && (i + diff) <= maxI) i += diff;
+        else if (changedSource !== 'living' && (l + diff) >= minL && (l + diff) <= maxL) l += diff;
+        else s += diff;
+      }
+
+      state.ratios.living = l;
+      state.ratios.invest = i;
+      state.ratios.shield = s;
+
+      // Sync inputs and sliders
+      document.getElementById('input-ratio-living').value = l;
+      document.getElementById('input-ratio-invest').value = i;
+      document.getElementById('input-ratio-shield').value = s;
+      document.getElementById('slider-ratio-living').value = l;
+      document.getElementById('slider-ratio-invest').value = i;
+      document.getElementById('slider-ratio-shield').value = s;
+
+      updateRatioUI();
+      calculateStage1();
+      updateShieldScore();
+    }
+
+    // Finalize input if left empty or blurred
+    function finalizeRatioInput(source) {
+      const el = document.getElementById(`input-ratio-${source}`);
+      if (!el.value || isNaN(parseInt(el.value))) {
+        el.value = state.ratios[source];
+      }
+      handleRatioInputChange(source);
+    }
+
+    // Smart Auto-balancing Engine: Guarantees Living + Invest + Shield === 100%
+    function handleRatioSliderChange(changedSource) {
+      let l = parseInt(document.getElementById('slider-ratio-living').value) || 0;
+      let i = parseInt(document.getElementById('slider-ratio-invest').value) || 0;
+      let s = parseInt(document.getElementById('slider-ratio-shield').value) || 0;
+
+      const minL = 15, maxL = 85;
+      const minI = 5,  maxI = 75;
+      const minS = 3,  maxS = 30;
+
+      // Smart rebalancing logic depending on which slider was adjusted
+      if (changedSource === 'living') {
+        let remaining = 100 - l;
+        let currentISum = i + s;
+        if (currentISum > 0) {
+          let newS = Math.round(remaining * (s / currentISum));
+          newS = Math.max(minS, Math.min(maxS, newS));
+          let newI = remaining - newS;
+
+          if (newI < minI) {
+            newI = minI;
+            newS = remaining - newI;
+          } else if (newI > maxI) {
+            newI = maxI;
+            newS = remaining - newI;
+          }
+          i = newI;
+          s = newS;
+        } else {
+          s = minS;
+          i = remaining - s;
+        }
+      } else if (changedSource === 'invest') {
+        let remaining = 100 - i;
+        let newL = remaining - s;
+        if (newL < minL) {
+          newL = minL;
+          s = remaining - newL;
+          if (s < minS) s = minS;
+          if (s > maxS) s = maxS;
+        } else if (newL > maxL) {
+          newL = maxL;
+          s = remaining - newL;
+        }
+        l = newL;
+      } else if (changedSource === 'shield') {
+        let remaining = 100 - s;
+        let newI = remaining - l;
+        if (newI < minI) {
+          newI = minI;
+          l = remaining - newI;
+        } else if (newI > maxI) {
+          newI = maxI;
+          l = remaining - newI;
+        }
+        i = newI;
+      }
+
+      // Final strict clamping to guarantee exact 100% total
+      let diff = 100 - (l + i + s);
+      if (diff !== 0) {
+        if (changedSource !== 'invest' && (i + diff) >= minI && (i + diff) <= maxI) {
+          i += diff;
+        } else if (changedSource !== 'living' && (l + diff) >= minL && (l + diff) <= maxL) {
+          l += diff;
+        } else {
+          s += diff;
+        }
+      }
+
+      // Sync both slider and numeric input UI values
+      document.getElementById('slider-ratio-living').value = l;
+      document.getElementById('slider-ratio-invest').value = i;
+      document.getElementById('slider-ratio-shield').value = s;
+      document.getElementById('input-ratio-living').value = l;
+      document.getElementById('input-ratio-invest').value = i;
+      document.getElementById('input-ratio-shield').value = s;
+
+      state.ratios.living = l;
+      state.ratios.invest = i;
+      state.ratios.shield = s;
+
+      updateRatioUI();
+      calculateStage1();
+      updateShieldScore();
+    }
+
+    function applyPreset(living, invest, shield) {
+      document.getElementById('slider-ratio-living').value = living;
+      document.getElementById('slider-ratio-invest').value = invest;
+      document.getElementById('slider-ratio-shield').value = shield;
+      document.getElementById('input-ratio-living').value = living;
+      document.getElementById('input-ratio-invest').value = invest;
+      document.getElementById('input-ratio-shield').value = shield;
+
+      state.ratios.living = living;
+      state.ratios.invest = invest;
+      state.ratios.shield = shield;
+
+      updateRatioUI();
+      calculateStage1();
+      updateShieldScore();
+
+      // Automatically sync investment pool to stage-3 slider default
+      const investAmount = state.income * (invest / 100);
+      const roundedInvest = Math.min(35000, Math.max(2000, Math.round(investAmount / 1000) * 1000));
+      document.getElementById('sim-monthly-contrib').value = roundedInvest;
+      runSimulation();
+    }
+
+    function updateRatioUI() {
+      const l = state.ratios.living;
+      const i = state.ratios.invest;
+      const s = state.ratios.shield;
+
+      // Update input fields
+      document.getElementById('input-ratio-living').value = l;
+      document.getElementById('input-ratio-invest').value = i;
+      document.getElementById('input-ratio-shield').value = s;
+
+      document.getElementById('ideal-living-pct-label').innerText = `${l}%`;
+      document.getElementById('shield-budget-pct-label').innerText = `${s}%`;
+
+      // Visual proportional bar
+      document.getElementById('bar-liv-pct').innerText = `${l}%`;
+      document.getElementById('bar-inv-pct').innerText = `${i}%`;
+      document.getElementById('bar-shi-pct').innerText = `${s}%`;
+      document.getElementById('bar-seg-living').style.width = `${l}%`;
+      document.getElementById('bar-seg-invest').style.width = `${i}%`;
+      document.getElementById('bar-seg-shield').style.width = `${s}%`;
+    }
+
+    // Initialize
+    window.onload = function() {
+      // Set current date in report
+      const now = new Date();
+      const dateStr = `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日`;
+      document.getElementById('report-date').innerText = dateStr;
+
+      // Bind input events to expenses
+      const expInputs = document.querySelectorAll('.exp-input');
+      expInputs.forEach(input => {
+        input.addEventListener('input', calculateStage1);
+      });
+
+      updateRatioUI();
+      calculateStage1();
+      updateShieldScore();
+      runSimulation();
+    };
+
+    // Step Navigation
+    function goToStep(step) {
+      // Hide all
+      for (let i = 1; i <= 4; i++) {
+        const target = document.getElementById(`step-${i}`);
+        if (target) target.classList.add('hidden');
+
+        const badge = document.getElementById(`badge-step-${i}`);
+        if (badge) {
+          if (i === step) {
+            badge.className = 'px-2.5 py-1 rounded-full bg-latte-500 text-white font-semibold';
+          } else if (i < step) {
+            badge.className = 'px-2.5 py-1 rounded-full bg-latte-200 text-latte-800 font-medium';
+          } else {
+            badge.className = 'px-2.5 py-1 rounded-full bg-stone-200 text-stone-700';
+          }
+        }
+      }
+
+      // Show target
+      const showTarget = document.getElementById(`step-${step}`);
+      if (showTarget) {
+        showTarget.classList.remove('hidden');
+      }
+
+      state.currentStep = step;
+      document.getElementById('wizard-progress-bar').style.width = `${step * 25}%`;
+
+      // If entering stage 4, sync final report
+      if (step === 4) {
+        syncFinalReport();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Toggle Food Helper
+    function toggleFoodHelper() {
+      const helper = document.getElementById('food-helper-box');
+      helper.classList.toggle('hidden');
+    }
+
+    function applyFoodHelper() {
+      const weekday = parseFloat(document.getElementById('weekday-meal').value) || 0;
+      const weekend = parseFloat(document.getElementById('weekend-meal').value) || 0;
+      // 22 weekdays + 8 weekend days
+      const totalFood = (weekday * 22) + (weekend * 8);
+      document.getElementById('exp-food').value = totalFood;
+      toggleFoodHelper();
+      calculateStage1();
+    }
+
+    function handleIncomeChange() {
+      const val = parseFloat(document.getElementById('monthly-income').value) || 0;
+      state.income = val;
+      calculateStage1();
+      updateShieldScore();
+      runSimulation();
+    }
+
+    // STAGE 1 Calculations
+    function calculateStage1() {
+      state.income = parseFloat(document.getElementById('monthly-income').value) || 0;
+      
+      state.expenses.food = parseFloat(document.getElementById('exp-food').value) || 0;
+      state.expenses.housing = parseFloat(document.getElementById('exp-housing').value) || 0;
+      state.expenses.traffic = parseFloat(document.getElementById('exp-traffic').value) || 0;
+      state.expenses.living = parseFloat(document.getElementById('exp-living').value) || 0;
+      state.expenses.fun = parseFloat(document.getElementById('exp-fun').value) || 0;
+      state.expenses.loan = parseFloat(document.getElementById('exp-loan').value) || 0;
+      state.expenses.family = parseFloat(document.getElementById('exp-family').value) || 0;
+      state.expenses.other = parseFloat(document.getElementById('exp-other').value) || 0;
+
+      const totalExp = Object.values(state.expenses).reduce((a, b) => a + b, 0);
+      const ratio = state.income > 0 ? (totalExp / state.income) * 100 : 0;
+      const surplus = state.income - totalExp;
+
+      // Dynamic ratios from custom model
+      const idealLiving = state.income * (state.ratios.living / 100);
+      const idealInvest = state.income * (state.ratios.invest / 100);
+      const idealShield = state.income * (state.ratios.shield / 100);
+
+      // Update Stage 1 DOM
+      document.getElementById('current-total-exp').innerText = `NT$ ${fmt(totalExp)}`;
+      const expRatioBadge = document.getElementById('exp-ratio-text');
+      expRatioBadge.innerText = `佔收入 ${Math.round(ratio)}%`;
+      if (ratio > state.ratios.living) {
+        expRatioBadge.className = 'text-xs ml-2 font-medium px-2 py-0.5 rounded bg-amber-100 text-amber-800';
+      } else {
+        expRatioBadge.className = 'text-xs ml-2 font-medium px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
+      }
+
+      document.getElementById('ideal-living-budget').innerText = `NT$ ${fmt(idealLiving)}`;
+      document.getElementById('ratio-60-amount').innerText = `NT$ ${fmt(idealLiving)}`;
+      document.getElementById('ratio-30-amount').innerText = `NT$ ${fmt(idealInvest)}`;
+      document.getElementById('ratio-10-amount').innerText = `NT$ ${fmt(idealShield)}`;
+
+      const ratio60Status = document.getElementById('ratio-60-status');
+      if (ratio > state.ratios.living) {
+        ratio60Status.innerText = `目前實際：${Math.round(ratio)}% (超過自訂上限)`;
+        ratio60Status.className = 'text-[11px] text-amber-700 mt-1';
+      } else {
+        ratio60Status.innerText = `目前實際：${Math.round(ratio)}% (控制優良)`;
+        ratio60Status.className = 'text-[11px] text-emerald-700 mt-1';
+      }
+
+      // Happy number & Emergency
+      const happyNum = parseFloat(document.getElementById('happy-number').value) || 0;
+      state.happyNumber = happyNum;
+      const emergency6m = totalExp * 6;
+
+      document.getElementById('happy-exp-base').innerText = fmt(totalExp);
+      document.getElementById('emergency-fund-amount').innerText = `NT$ ${fmt(emergency6m)}`;
+      
+      const surplusEl = document.getElementById('monthly-surplus');
+      surplusEl.innerText = `NT$ ${fmt(Math.max(0, surplus))}`;
+      if (surplus < 0) {
+        surplusEl.innerText = `NT$ ${fmt(surplus)} (赤字)`;
+        surplusEl.className = 'font-bold text-rose-700';
+      } else {
+        surplusEl.className = 'font-bold text-emerald-800';
+      }
+    }
+
+    // STAGE 2 Calculations
+    function updateShieldScore() {
+      const dailyWage = state.income > 0 ? state.income / 30 : 0;
+      document.getElementById('card-daily-wage').innerText = `NT$ ${fmt(dailyWage)} / 天`;
+      document.getElementById('card-pause-loss').innerText = `NT$ ${fmt(dailyWage * 7)}`;
+
+      const acc = document.getElementById('shield-accident').checked;
+      const accPay = document.getElementById('shield-accident-pay').checked;
+      const hosp = document.getElementById('shield-hospital-pay').checked;
+      const surg = document.getElementById('shield-surgery').checked;
+
+      state.shieldChecks = { accident: acc, accidentPay: accPay, hospitalPay: hosp, surgery: surg };
+
+      let score = 0;
+      if (acc) score += 20;
+      if (accPay) score += 20;
+      if (hosp) score += 35; // Core shield weight
+      if (surg) score += 25;
+
+      // Update circle & score
+      document.getElementById('shield-score-text').innerText = score;
+      document.getElementById('shield-circle-svg').setAttribute('stroke-dasharray', `${score}, 100`);
+
+      const desc = document.getElementById('shield-diagnostic-desc');
+      if (score >= 90) {
+        desc.innerText = '🛡️ 防護罩極度健全！四大核心全數具備，足以替漫長的投資複利築起完整防火牆。';
+      } else if (score >= 50) {
+        desc.innerText = '⚠️ 防護處於基礎階段，已具備日常意外屏障，但若發生住院或大型自費手術，仍有重大財務破口。';
+      } else {
+        desc.innerText = '🚨 防護幾乎為零！一旦遇生病停工或突發意外，將直接迫使你中斷投資或動用預備金。';
+      }
+
+      // Suggested budget based on custom shield percentage
+      const shieldPct = state.ratios.shield / 100;
+      const annualBudget = state.income * 12 * shieldPct;
+      const monthlyBudget = state.income * shieldPct;
+      document.getElementById('shield-annual-budget').innerText = `NT$ ${fmt(annualBudget)} / 年`;
+      document.getElementById('shield-monthly-budget').innerText = `NT$ ${fmt(monthlyBudget)} / 月`;
+    }
+
+    // STAGE 3 Calculations & Compounding Engine
+    function selectGoal(type) {
+      state.selectedGoal = type;
+      const btnShort = document.getElementById('goal-btn-short');
+      const btnMid = document.getElementById('goal-btn-mid');
+      const btnRetire = document.getElementById('goal-btn-retire');
+
+      [btnShort, btnMid, btnRetire].forEach(b => {
+        b.className = 'p-4 rounded-xl border border-latte-200 bg-white text-left transition hover:border-latte-400';
+      });
+
+      if (type === 'short') {
+        btnShort.className = 'p-4 rounded-xl border-2 border-latte-500 bg-latte-50/80 text-left transition relative';
+        document.getElementById('sim-years').value = 3;
+      } else if (type === 'mid') {
+        btnMid.className = 'p-4 rounded-xl border-2 border-latte-500 bg-latte-50/80 text-left transition relative';
+        document.getElementById('sim-years').value = 8;
+      } else {
+        btnRetire.className = 'p-4 rounded-xl border-2 border-latte-500 bg-latte-50/80 text-left transition relative';
+        document.getElementById('sim-years').value = 25;
+      }
+      runSimulation();
+    }
+
+    function runSimulation() {
+      const contrib = parseFloat(document.getElementById('sim-monthly-contrib').value);
+      const years = parseFloat(document.getElementById('sim-years').value);
+      const r = parseFloat(document.getElementById('sim-return-rate').value);
+
+      state.sim.monthlyContrib = contrib;
+      state.sim.years = years;
+      state.sim.rate = r;
+
+      document.getElementById('slider-contrib-val').innerText = `NT$ ${fmt(contrib)} / 月`;
+      document.getElementById('slider-years-val').innerText = `${years} 年`;
+
+      // Monthly compounding calculation
+      const months = years * 12;
+      const monthlyRate = r / 12;
+      const futureVal = contrib * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+      const totalPrincipal = contrib * months;
+      const totalInterest = Math.max(0, futureVal - totalPrincipal);
+
+      document.getElementById('sim-total-principal').innerText = `NT$ ${fmt(totalPrincipal)}`;
+      document.getElementById('sim-total-interest').innerText = `NT$ ${fmt(totalInterest)}`;
+      document.getElementById('sim-total-future').innerText = `NT$ ${fmt(futureVal)}`;
+
+      // 4% Rule Monthly Passive Cashflow
+      const monthlyPassive = (futureVal * 0.04) / 12;
+      document.getElementById('sim-monthly-passive').innerText = `NT$ ${fmt(monthlyPassive)}`;
+
+      // Compare with total expenses
+      const totalExp = Object.values(state.expenses).reduce((a, b) => a + b, 0);
+      const coveragePct = totalExp > 0 ? Math.round((monthlyPassive / totalExp) * 100) : 0;
+      document.getElementById('coverage-percentage-badge').innerText = `抵繳開銷 ${coveragePct}%`;
+
+      // Check items unlocked
+      const phoneCost = state.expenses.living;
+      const trafficCost = state.expenses.traffic;
+      const rentCost = state.expenses.housing;
+
+      // 1. Phone & Subscriptions
+      const statusPhone = document.getElementById('status-phone');
+      if (monthlyPassive >= phoneCost) {
+        statusPhone.innerText = '✅ 已完整覆蓋';
+        statusPhone.className = 'font-semibold text-emerald-700';
+      } else {
+        statusPhone.innerText = `⏳ 還差 NT$ ${fmt(phoneCost - monthlyPassive)}`;
+        statusPhone.className = 'font-semibold text-stone-600';
+      }
+
+      // 2. Traffic
+      const statusTraffic = document.getElementById('status-traffic');
+      if (monthlyPassive >= (phoneCost + trafficCost)) {
+        statusTraffic.innerText = '✅ 已完整覆蓋';
+        statusTraffic.className = 'font-semibold text-emerald-700';
+      } else {
+        const gap = Math.max(0, (phoneCost + trafficCost) - monthlyPassive);
+        statusTraffic.innerText = `⏳ 還差 NT$ ${fmt(gap)}`;
+        statusTraffic.className = 'font-semibold text-stone-600';
+      }
+
+      // 3. Rent
+      const statusRent = document.getElementById('status-rent');
+      if (monthlyPassive >= rentCost) {
+        statusRent.innerText = `🎉 恭喜！房租已 100% 被被動金流買單`;
+        statusRent.className = 'font-semibold text-emerald-700';
+      } else {
+        statusRent.innerText = `⏳ 還差 NT$ ${fmt(rentCost - monthlyPassive)} 全額抵繳`;
+        statusRent.className = 'font-semibold text-stone-600';
+      }
+    }
+
+    // STAGE 4 Report Synchronization
+    function syncFinalReport() {
+      const totalExp = Object.values(state.expenses).reduce((a, b) => a + b, 0);
+      const ratio = state.income > 0 ? Math.round((totalExp / state.income) * 100) : 0;
+      const surplus = Math.max(0, state.income - totalExp);
+      const dailyWage = state.income > 0 ? state.income / 30 : 0;
+
+      // Header Tag
+      document.getElementById('report-income-tag').innerText = `NT$ ${fmt(state.income)}`;
+
+      // Card 1
+      document.getElementById('rep-exp-val').innerText = `NT$ ${fmt(totalExp)}`;
+      document.getElementById('rep-ratio-val').innerText = `${ratio}%`;
+      document.getElementById('rep-happy-val').innerText = `NT$ ${fmt(state.happyNumber)}`;
+      document.getElementById('rep-emer-val').innerText = `NT$ ${fmt(totalExp * 6)}`;
+
+      // Card 2
+      let shieldScore = 0;
+      if (state.shieldChecks.accident) shieldScore += 20;
+      if (state.shieldChecks.accidentPay) shieldScore += 20;
+      if (state.shieldChecks.hospitalPay) shieldScore += 35;
+      if (state.shieldChecks.surgery) shieldScore += 25;
+
+      document.getElementById('rep-shield-score').innerText = `${shieldScore} 分 / 100`;
+      document.getElementById('rep-daily-wage').innerText = `NT$ ${fmt(dailyWage)}`;
+      document.getElementById('rep-shield-budget').innerText = `NT$ ${fmt(state.income * 12 * (state.ratios.shield / 100))}`;
+      
+      const missingShield = [];
+      if (!state.shieldChecks.hospitalPay) missingShield.push('住院實支實付');
+      if (!state.shieldChecks.surgery) missingShield.push('手術險');
+      if (!state.shieldChecks.accidentPay) missingShield.push('意外實支');
+      document.getElementById('rep-shield-focus').innerText = missingShield.length > 0 ? missingShield[0] : '維持現況定期檢視';
+
+      // Card 3
+      let goalTitle = '短期：累積首桶金';
+      if (state.selectedGoal === 'mid') goalTitle = '中長期：成家首購頭期';
+      if (state.selectedGoal === 'retire') goalTitle = '遠期：自由退休現金流';
+      document.getElementById('rep-goal-name').innerText = goalTitle;
+      document.getElementById('rep-sim-monthly').innerText = `NT$ ${fmt(state.sim.monthlyContrib)}`;
+
+      // Future value
+      const months = state.sim.years * 12;
+      const monthlyRate = state.sim.rate / 12;
+      const futureVal = state.sim.monthlyContrib * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+      const monthlyPassive = (futureVal * 0.04) / 12;
+      const coveragePct = totalExp > 0 ? Math.round((monthlyPassive / totalExp) * 100) : 0;
+
+      document.getElementById('rep-sim-future').innerText = `NT$ ${fmt(futureVal)}`;
+      document.getElementById('rep-sim-cov').innerText = `${coveragePct}%`;
+
+      // Table Comparison with custom ratio
+      const idealLiv = state.income * (state.ratios.living / 100);
+      const idealInv = state.income * (state.ratios.invest / 100);
+      const idealShi = state.income * (state.ratios.shield / 100);
+
+      document.getElementById('table-head-living').innerText = `生活開銷 (${state.ratios.living}%)`;
+      document.getElementById('table-head-invest').innerText = `理財累積 (${state.ratios.invest}%)`;
+      document.getElementById('table-head-shield').innerText = `風險防護 (${state.ratios.shield}%)`;
+
+      document.getElementById('table-curr-living').innerText = `NT$ ${fmt(totalExp)} (${ratio}%)`;
+      document.getElementById('table-ideal-living').innerText = `NT$ ${fmt(idealLiv)} (${state.ratios.living}%)`;
+      document.getElementById('table-curr-invest').innerText = `NT$ ${fmt(surplus)} (${Math.round((surplus/state.income)*100)}%)`;
+      document.getElementById('table-ideal-invest').innerText = `NT$ ${fmt(idealInv)} (${state.ratios.invest}%)`;
+      document.getElementById('table-ideal-shield').innerText = `NT$ ${fmt(idealShi)} (${state.ratios.shield}%)`;
+
+      // Text recommendations
+      document.getElementById('rec-happy-txt').innerText = `NT$ ${fmt(state.happyNumber)}`;
+      document.getElementById('rec-invest-txt').innerText = `NT$ ${fmt(idealInv)}`;
+    }
+
+    // Copy Summary Helper
+    function copySummaryText() {
+      const totalExp = Object.values(state.expenses).reduce((a, b) => a + b, 0);
+      const text = `【財務工程戰報摘要】\n` +
+                   `• 月收入：NT$ ${fmt(state.income)}\n` +
+                   `• 自訂分配目標：生活 ${state.ratios.living}% / 投資 ${state.ratios.invest}% / 保障 ${state.ratios.shield}%\n` +
+                   `• 每月支出現況：NT$ ${fmt(totalExp)} (佔比 ${Math.round((totalExp/state.income)*100)}%)\n` +
+                   `• 幸福數字底牌：NT$ ${fmt(state.happyNumber)} ｜ 6個月預備金：NT$ ${fmt(totalExp * 6)}\n` +
+                   `• 日薪估算：NT$ ${fmt(state.income/30)} / 天\n` +
+                   `• 防護罩得分：${document.getElementById('rep-shield-score').innerText}\n` +
+                   `• 保底投資規劃：每月定期投入 NT$ ${fmt(state.sim.monthlyContrib)}，持續 ${state.sim.years} 年\n` +
+                   `• 預期保底資產：${document.getElementById('rep-sim-future').innerText} (4%被動覆蓋率 ${document.getElementById('rep-sim-cov').innerText})\n` +
+                   `—— 產自財務工程系統`;
+
+      const dummy = document.createElement("textarea");
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+
+      const toast = document.getElementById('copy-toast');
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
